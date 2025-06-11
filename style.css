@@ -23,22 +23,16 @@ html {
 }
 
 body {
+    /* ... outras propriedades ... */
     font-family: var(--font-body);
     color: var(--text-dark);
     background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-    background-size: 400% 400%; /* Para animação do gradiente */
-    animation: gradientAnimation 15s ease infinite; /* Animação do gradiente */
+    /* A linha de background-size e animation foram removidas */
     position: relative;
     min-height: 100vh;
-    overflow-x: hidden; /* Evita scroll horizontal */
-    scroll-snap-type: y mandatory; /* Habilita o scroll snap vertical mandatório */
-    overflow-y: scroll; /* Permite scroll vertical */
-}
-
-@keyframes gradientAnimation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    overflow-x: hidden;
+    scroll-snap-type: none;
+    overflow-y: hidden;
 }
 
 /* Preloader */
@@ -208,6 +202,8 @@ p {
 
 /* O cursor de digitação customizado (adicionado via JS) */
 .typewriter-text::after {
+    opacity: 0 !important;
+
     content: '|';
     display: inline-block;
     vertical-align: bottom;
@@ -226,6 +222,8 @@ p {
 
 /* Classe para mostrar o cursor (JS vai aplicar) */
 .typewriter-text.typing-cursor::after {
+    opacity: 1 !important;
+
     opacity: 1;
 }
 
@@ -233,6 +231,15 @@ p {
 .typewriter-text.finished-typing::after {
     opacity: 0;
     animation: none;
+}
+section {
+    min-height: 100vh;
+    scroll-snap-align: start;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
 }
 
 /* Galeria de Imagens (Carrossel) */
