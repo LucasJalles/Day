@@ -1,12 +1,12 @@
-/* Variáveis de Cores e Fontes */
+/* Variáveis de Cores e Fontes (sem alterações) */
 :root {
-    --primary-color: #6a0572; /* Um roxo profundo, evocando romance e sofisticação */
-    --secondary-color: #a4508b; /* Um rosa empoeirado, mais suave e romântico */
-    --accent-color: #f7b2bd; /* Um rosa claro e vibrante, para destaques e calor */
-    --text-dark: #2c3e50; /* Cinza escuro para texto principal, mantendo a legibilidade profissional */
-    --text-light: #ecf0f1; /* Cinza muito claro, para texto em fundos escuros */
-    --bg-gradient-start: #fcebeb; /* Um rosa muito claro, quase branco, para o início do gradiente */
-    --bg-gradient-end: #f0e6ef; /* Um lavanda suave, para o fim do gradiente */
+    --primary-color: #6a0572;
+    --secondary-color: #a4508b;
+    --accent-color: #f7b2bd;
+    --text-dark: #2c3e50;
+    --text-light: #ecf0f1;
+    --bg-gradient-start: #fcebeb;
+    --bg-gradient-end: #f0e6ef;
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Roboto', sans-serif;
 }
@@ -19,23 +19,20 @@
 }
 
 html {
-    scroll-behavior: smooth; /* Scroll suave ao navegar entre seções */
+    scroll-behavior: smooth;
 }
 
 body {
-    /* ... outras propriedades ... */
     font-family: var(--font-body);
     color: var(--text-dark);
     background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-    /* A linha de background-size e animation foram removidas */
-    position: relative;
     min-height: 100vh;
-    overflow-x: hidden;
-    scroll-snap-type: none;
-    overflow-y: hidden;
+    overflow-x: hidden; /* Garante que não haja scroll horizontal */
+    scroll-snap-type: y mandatory;
 }
 
-/* Preloader */
+
+/* Preloader e Botão de Música (estilos mantidos) */
 #preloader {
     position: fixed;
     top: 0;
@@ -49,24 +46,10 @@ body {
     z-index: 9999;
     transition: opacity 1s ease-out;
 }
+.preloader-content { text-align: center; color: var(--text-dark); }
+.preloader-content img { width: 100px; height: 100px; margin-bottom: 20px; }
+.preloader-content p { font-size: 1.5em; font-weight: 700; }
 
-.preloader-content {
-    text-align: center;
-    color: var(--text-dark);
-}
-
-.preloader-content img {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 20px;
-}
-
-.preloader-content p {
-    font-size: 1.5em;
-    font-weight: 700;
-}
-
-/* Botão de Música */
 .music-toggle-button {
     position: fixed;
     top: 20px;
@@ -84,17 +67,11 @@ body {
     z-index: 1000;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
+.music-toggle-button:hover { background-color: rgba(255, 255, 255, 0.9); transform: scale(1.05); }
+.music-toggle-button svg { color: var(--primary-color); }
 
-.music-toggle-button:hover {
-    background-color: rgba(255, 255, 255, 0.9);
-    transform: scale(1.05);
-}
 
-.music-toggle-button svg {
-    color: var(--primary-color);
-}
-
-/* Container Principal da Linha do Tempo */
+/* Container e Seções */
 .timeline-container {
     width: 100%;
     display: flex;
@@ -104,7 +81,6 @@ body {
     transition: opacity 1s ease-in-out;
 }
 
-/* Seções da Linha do Tempo */
 .timeline-section {
     width: 100%;
     min-height: 100vh;
@@ -113,7 +89,8 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 80px 20px;
+    /* Espaçamento fluido */
+    padding: 40px clamp(15px, 5vw, 40px);
     box-sizing: border-box;
     position: relative;
     scroll-snap-align: start;
@@ -128,297 +105,139 @@ body {
     transform: translateY(0);
 }
 
+/* --- TIPOGRAFIA FLUIDA COM CLAMP() --- */
 h1, h2, p, .signature, .date, .counter-slogan {
-    color: var(--text-dark);
     text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 20px;
-    font-size: 1.2em; /* Base size, adjusted below */
     white-space: pre-wrap;
     text-align: center;
+    max-width: 95%; /* Evita que textos muito longos quebrem o layout */
 }
 
 h1 {
     font-family: var(--font-heading);
     color: var(--primary-color);
-    font-size: 4.5em; /* Desktop default */
+    font-size: clamp(2.8em, 8vw, 5em); /* Adapta-se entre 2.8em e 5em */
     line-height: 1.2;
 }
 
 h2 {
     font-family: var(--font-heading);
     color: var(--primary-color);
-    font-size: 3.5em; /* Desktop default */
+    font-size: clamp(2.2em, 7vw, 3.5em); /* Adapta-se entre 2.2em e 3.5em */
     line-height: 1.2;
 }
 
 p {
     font-family: var(--font-body);
-    font-size: 1.8em; /* Desktop default */
-    line-height: 1.5;
-    max-width: 900px;
+    font-size: clamp(1.1em, 3vw, 1.8em); /* Adapta-se entre 1.1em e 1.8em */
+    line-height: 1.6;
+    max-width: 900px; /* Mantém um limite em telas grandes */
     font-weight: 300;
 }
 
-.welcome-section h1 {
-    font-size: 5em; /* Desktop default */
-    margin-bottom: 30px;
-}
 .welcome-section p {
-    font-size: 2.2em; /* Desktop default */
-    margin-bottom: 40px;
+    font-size: clamp(1.4em, 4vw, 2.2em);
 }
 
 .action-button {
     background-color: var(--primary-color);
     color: var(--text-light);
     border: none;
-    padding: 15px 35px;
-    font-size: 1.5em;
+    padding: clamp(12px, 2.5vw, 15px) clamp(25px, 4vw, 35px);
+    font-size: clamp(1.1em, 2.5vw, 1.5em);
     border-radius: 50px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
-
 .action-button:hover {
     background-color: #3f5e7a;
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
 
-/* Tipo de Texto - Efeito de Digitação */
-.typewriter-text {
-    display: inline-block;
-    white-space: pre-wrap;
-    overflow: hidden;
-    max-width: 90%;
-    box-sizing: border-box;
-    position: relative;
-}
+/* Efeito Typewriter (sem alterações) */
+.typewriter-text { display: inline-block; white-space: pre-wrap; overflow: hidden; max-width: 90%; box-sizing: border-box; position: relative; }
+.typewriter-text::after { opacity: 0 !important; content: '|'; display: inline-block; vertical-align: bottom; color: var(--accent-color); animation: blink-caret 0.75s step-end infinite; width: 0.5em; opacity: 0; transition: opacity 0.1s; }
+@keyframes blink-caret { from, to { opacity: 0; } 50% { opacity: 1; } }
+.typewriter-text.typing-cursor::after { opacity: 1 !important; opacity: 1; }
+.typewriter-text.finished-typing::after { opacity: 0; animation: none; }
 
-.action-button {
-    margin-top: 20px;
-}
 
-/* O cursor de digitação customizado (adicionado via JS) */
-.typewriter-text::after {
-    opacity: 0 !important;
-
-    content: '|';
-    display: inline-block;
-    vertical-align: bottom;
-    color: var(--accent-color);
-    animation: blink-caret 0.75s step-end infinite;
-    width: 0.5em;
-    opacity: 0; /* Começa oculto */
-    transition: opacity 0.1s;
-}
-
-/* Animação do Cursor de Digitação */
-@keyframes blink-caret {
-    from, to { opacity: 0; }
-    50% { opacity: 1; }
-}
-
-/* Classe para mostrar o cursor (JS vai aplicar) */
-.typewriter-text.typing-cursor::after {
-    opacity: 1 !important;
-
-    opacity: 1;
-}
-
-/* Classe para esconder o cursor quando a digitação termina (JS vai aplicar) */
-.typewriter-text.finished-typing::after {
-    opacity: 0;
-    animation: none;
-}
-section {
-    min-height: 100vh;
-    scroll-snap-align: start;
-}
-
-html {
-    scroll-behavior: smooth;
-    scroll-snap-type: y mandatory;
-}
-
-/* Galeria de Imagens (Carrossel) */
-.gallery-section {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-}
+/* Galeria de Imagens (Carrossel) Responsivo */
+.gallery-section { overflow: hidden; }
 .image-carousel {
     position: relative;
-    width: 80vw;
-    height: 70vh;
-    max-width: 1200px;
+    width: clamp(90vw, 90%, 1200px); /* Usa 90% da largura da tela, no máximo 1200px */
+    height: 60vh; /* Altura baseada na altura da tela */
     max-height: 800px;
     overflow: hidden;
     border-radius: 15px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
     margin-top: 30px;
 }
-.carousel-track {
+.carousel-track { display: flex; width: 100%; height: 100%; transition: transform 0.8s ease-in-out; }
+.carousel-item { min-width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; padding: 20px; }
+.carousel-item img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+.carousel-item p { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.5); color: var(--text-light); padding: 8px 15px; border-radius: 5px; font-size: clamp(0.9em, 2vw, 1.1em); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; text-shadow: none; }
+.carousel-button { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.7); border: none; padding: 10px; font-size: clamp(1.5em, 4vw, 2.5em); color: var(--primary-color); cursor: pointer; z-index: 10; border-radius: 50%; width: clamp(40px, 8vw, 55px); height: clamp(40px, 8vw, 55px); display: flex; align-items: center; justify-content: center; }
+.carousel-button:hover { background-color: rgba(255, 255, 255, 0.9); transform: translateY(-50%) scale(1.1); }
+.carousel-button.prev { left: 10px; }
+.carousel-button.next { right: 10px; }
+
+
+/* Contador de Relacionamento Responsivo */
+.counter-display {
     display: flex;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s ease-in-out;
-}
-.carousel-item {
-    min-width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    position: relative;
-    padding: 20px;
-}
-.carousel-item img {
-    width: 100%;
-    height: calc(100% - 60px);
-    object-fit: contain;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.carousel-item p {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0,0,0,0.4);
-    color: var(--text-light);
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-size: 1.1em;
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 90%;
-    text-shadow: none;
-}
-.carousel-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(255, 255, 255, 0.7);
-    border: none;
-    padding: 10px 15px;
-    font-size: 2.5em;
-    color: var(--primary-color);
-    cursor: pointer;
-    z-index: 10;
-    border-radius: 50%;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-.carousel-button:hover {
-    background-color: rgba(255, 255, 255, 0.9);
-    transform: translateY(-50%) scale(1.1);
-}
-.carousel-button.prev { left: 20px; }
-.carousel-button.next { right: 20px; }
-
-/* Contador de Relacionamento */
-.counter-section {
-    text-align: center;
-}
-.counter-display {
-    display: flex; /* Garante layout horizontal */
-    flex-wrap: nowrap; /* Impede quebras de linha em telas pequenas */
-    justify-content: center;
-    gap: 40px; /* Espaçamento entre os itens */
+    flex-wrap: wrap; /* Permite quebrar a linha em telas muito pequenas */
+    gap: clamp(15px, 5vw, 40px);
     margin-top: 50px;
     background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
     border-radius: 20px;
-    padding: 40px;
+    padding: clamp(20px, 5vw, 40px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    
-    /* Animação de entrada para o display completo */
-    opacity: 0;
-    transform: translateY(50px) scale(0.9);
-    transition: opacity 1s ease-out, transform 1s ease-out;
+    width: clamp(90%, 80vw, 800px); /* Largura fluida */
 }
-.counter-section.active .counter-display {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-.counter-item {
-    text-align: center;
-    /* Ajuste para que cada item ocupe um terço do espaço disponível */
-    flex: 1 1 0; /* Permite que os itens cresçam e diminuam igualmente */
-    min-width: 100px; /* Largura mínima para evitar que fiquem muito pequenos */
-}
+.counter-item { text-align: center; flex: 1 1 80px; /* Garante que os itens possam encolher e não transbordem */ }
 .counter-item span {
     font-family: var(--font-body);
-    font-size: 5em;
+    font-size: clamp(2.5em, 10vw, 5em);
     font-weight: 700;
     color: var(--accent-color);
     display: block;
     line-height: 1;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-    /* Animação de roll-in e pulse */
-    opacity: 0;
-    transform: translateY(20px);
-    animation: rollIn 0.8s ease-out forwards, pulse 1.5s infinite alternate;
 }
-/* Atrasos para a animação de entrada e pulse em cascata */
-.counter-section.active .counter-item:nth-child(1) span { animation-delay: 0.3s; } /* Dias */
-.counter-section.active .counter-item:nth-child(2) span { animation-delay: 0.5s; } /* Horas */
-.counter-section.active .counter-item:nth-child(3) span { animation-delay: 0.7s; } /* Minutos */
-
-@keyframes rollIn {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.05); }
-}
-
 .counter-item p {
-    font-size: 1.4em;
+    font-size: clamp(0.8em, 3vw, 1.4em);
     color: var(--text-dark);
     margin-top: 10px;
     text-shadow: none;
 }
-.counter-slogan {
-    margin-top: 60px;
-    font-size: 2em;
-    font-style: italic;
-    color: var(--primary-color);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-}
+.counter-slogan { margin-top: 40px; font-size: clamp(1.4em, 4vw, 2em); font-style: italic; color: var(--primary-color); }
 
-/* Promessas e Sonhos (mantém estilo) */
+
+/* Promessas e Sonhos Responsivo */
 .promise-list {
     list-style: none;
     margin-top: 50px;
+    width: 90%; /* --- CORREÇÃO DE OVERFLOW --- */
     max-width: 800px;
     background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
     border-radius: 20px;
-    padding: 40px;
+    padding: clamp(20px, 5vw, 40px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 .promise-list li {
-    padding: 18px 30px;
+    padding: clamp(12px, 3vw, 18px) clamp(15px, 4vw, 30px);
     margin-bottom: 20px;
     border-radius: 15px;
     text-align: left;
-    font-size: 1.6em;
+    font-size: clamp(1.1em, 3vw, 1.6em);
     color: var(--text-dark);
     display: flex;
     align-items: center;
@@ -426,124 +245,39 @@ html {
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     background-color: rgba(255, 255, 255, 0.6);
 }
-.promise-icon {
-    font-size: 1.8em;
-    color: var(--primary-color);
-}
-.promise-list li .typewriter-text {
-    border-right: none;
-}
+.promise-icon { font-size: 1.2em; /* Tamanho relativo ao 'li' */ }
 
-/* Seção Final (mantém estilo) */
+
+/* Seção Final Responsiva */
 .final-message-card {
     background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
-    padding: 60px;
+    padding: clamp(30px, 6vw, 60px);
     border-radius: 25px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    width: 90%; /* --- CORREÇÃO DE OVERFLOW --- */
     max-width: 900px;
     text-align: center;
     margin-top: 50px;
 }
 .final-message-card p {
-    font-size: 2em;
+    font-size: clamp(1.3em, 4vw, 2em);
     line-height: 1.6;
-    color: var(--text-dark);
     margin-bottom: 30px;
 }
 .final-message-card .signature {
     font-family: var(--font-heading);
-    font-size: 3em;
+    font-size: clamp(1.8em, 6vw, 3em);
     color: var(--primary-color);
     margin-top: 40px;
     margin-bottom: 15px;
 }
 .final-message-card .date {
-    font-size: 1.2em;
+    font-size: clamp(0.9em, 2.5vw, 1.2em);
     color: #888;
 }
 
-/* Responsividade - Ajustes de Fontes e Contador para Celular */
-@media (max-width: 768px) {
-    .timeline-section {
-        padding: 30px 15px;
-    }
-    
-    h1 { font-size: 3em; }
-    h2 { font-size: 2.5em; }
-    p { font-size: 1.2em; }
-
-    .welcome-section h1 { font-size: 3.5em; }
-    .welcome-section p { font-size: 1.6em; }
-    .action-button {
-        padding: 12px 25px;
-        font-size: 1.1em;
-    }
-
-    .image-carousel { width: 90vw; height: 60vh; }
-    .carousel-button { font-size: 2em; width: 45px; height: 45px; padding: 0;}
-    .carousel-item p { font-size: 0.9em; padding: 6px 12px; }
-
-    .counter-display {
-        gap: 15px; /* Reduzir gap em mobile */
-        padding: 25px; /* Reduzir padding */
-        width: 100%; /* Ocupar largura total em mobile */
-        max-width: unset; /* Remover max-width para flexibilidade */
-        flex-wrap: nowrap; /* Forçar itens a ficarem na mesma linha */
-    }
-    .counter-item {
-        min-width: 80px; /* Reduzir min-width para mobile */
-        flex: 1; /* Garantir que se dividam igualmente */
-    }
-    .counter-item span { font-size: 2.5em; } /* Reduzir tamanho dos números */
-    .counter-item p { font-size: 0.8em; } /* Reduzir tamanho do texto */
-    .counter-slogan { font-size: 1.4em; }
-
-    /* Seção de Músicas foi removida, então não precisa de media query aqui */
-
-    .promise-list { padding: 25px; }
-    .promise-list li { font-size: 1.1em; padding: 10px 15px; }
-    .promise-icon { font-size: 1.3em; }
-
-    .final-message-card { padding: 30px; }
-    .final-message-card p { font-size: 1.3em; }
-    .final-message-card .signature { font-size: 1.8em; }
-    .final-message-card .date { font-size: 0.9em; }
-}
-
-@media (max-width: 480px) {
-    .timeline-section {
-        padding: 20px 10px;
-    }
-    h1 { font-size: 2.5em; }
-    h2 { font-size: 2em; }
-    p { font-size: 1em; }
-    .welcome-section h1 { font-size: 3em; }
-    .welcome-section p { font-size: 1.2em; }
-    .action-button { font-size: 1em; padding: 8px 18px; }
-
-    .typewriter-text {
-        min-height: 1em;
-    }
-
-    .image-carousel { width: 95vw; height: 45vh; }
-    .carousel-button { font-size: 1.5em; width: 35px; height: 35px; }
-
-    .counter-display {
-        gap: 10px; /* Mais redução do gap */
-        padding: 15px;
-    }
-    .counter-item {
-        min-width: 60px; /* Mais redução do min-width */
-    }
-    .counter-item span { font-size: 2em; }
-    .counter-item p { font-size: 0.7em; }
-
-    /* Seção de Músicas foi removida, então não precisa de media query aqui */
-
-    .promise-list { padding: 15px; }
-    .promise-list li { font-size: 0.9em; padding: 8px 12px; }
-
-    .final-message-card p { font-size: 1.1em; }
-    .final-message-card .signature { font-size: 1.5em; }
-}
+/* As media queries abaixo foram removidas pois a abordagem com clamp()
+  e larguras flexíveis já cobre a maioria dos casos de forma mais eficiente.
+  Elas podem ser adicionadas de volta para ajustes muito específicos, mas 
+  com o código acima, o site já deve ser totalmente responsivo.
+*/
