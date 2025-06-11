@@ -30,7 +30,7 @@ window.addEventListener('load', () => {
         if (sections.length === 0) return;
 
         // --- FUNÇÃO DA MÁQUINA DE ESCREVER ---
-        function typeWriter(element, speed = 25) {
+        function typeWriter(element, speed = 85) {
             const textToType = element.getAttribute('data-text');
             if (!textToType || element.hasAttribute('data-typed')) return;
             element.setAttribute('data-typed', 'true');
@@ -105,7 +105,7 @@ window.addEventListener('load', () => {
         
         function scheduleNextAutoScroll() {
             stopAutoScroll(); // Sempre cancela o timer anterior antes de agendar um novo
-            const intervalTime = 12000; // 12 segundos
+            const intervalTime = 9000; // 12 segundos
 
             autoScrollTimer = setTimeout(() => {
                 const currentIndex = getCurrentSectionIndex();
