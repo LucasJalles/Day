@@ -30,7 +30,7 @@ window.addEventListener('load', () => {
         if (sections.length === 0) return;
 
         // --- FUNÇÃO DA MÁQUINA DE ESCREVER ---
-        function typeWriter(element, speed = 80) { // Velocidade da digitação ajustada
+        function typeWriter(element, speed = 25) {
             const textToType = element.getAttribute('data-text');
             if (!textToType || element.hasAttribute('data-typed')) return;
             element.setAttribute('data-typed', 'true');
@@ -72,12 +72,11 @@ window.addEventListener('load', () => {
         });
 
         // ========================================================================
-        // === LÓGICA DE SCROLL POR SEÇÃO E AUTO-SCROLL ===
+        // === LÓGICA DE SCROLL POR SEÇÃO E AUTO-SCROLL (LÓGICA REFINADA) ===
         // ========================================================================
         let isScrolling = false;
-        let autoScrollInterval = null; // Para o controle do auto-scroll
+        let autoScrollTimer = null; // Único timer para controlar o auto-scroll
 
-        // Função para detectar qual é a seção atual na tela
         function getCurrentSectionIndex() {
             let closestIndex = 0;
             sections.forEach((section, index) => {
@@ -89,59 +88,40 @@ window.addEventListener('load', () => {
             return closestIndex;
         }
         
-        // Função que rola suavemente para a seção desejada
         function scrollToSection(index) {
             if (isScrolling || index < 0 || index >= sections.length) return;
             isScrolling = true;
             sections[index].scrollIntoView({ behavior: 'smooth' });
-            
-            // CORREÇÃO 1: Reduzido o tempo de cooldown para 800ms
             setTimeout(() => {
                 isScrolling = false;
-            }, 700); 
+            }, 800); 
         }
 
-        // --- LÓGICA DE AUTO-SCROLL (RESTAURADA) ---
+        // --- LÓGICA DE AUTO-SCROLL REFINADA ---
         function stopAutoScroll() {
-            clearInterval(autoScrollInterval);
-            autoScrollInterval = null;
-        }
-
-        function restartAutoScrollDelayed() {
-            stopAutoScroll();
-            autoScrollInterval = setTimeout(() => {
-                startAutoScroll(true); // O 'true' indica que é uma continuação
-            }, 10000); // Reinicia após 10 segundos de inatividade
-        }
-
-        function startAutoScroll(isContinuation = false) {
-            stopAutoScroll();
-            const intervalTime = 9000; // Tempo entre cada avanço automático
-
-            const advance = () => {
-                let currentIndex = getCurrentSectionIndex();
-                if (currentIndex < sections.length - 1) {
-                    scrollToSection(currentIndex + 1);
-                } else {
-                    stopAutoScroll(); // Para no final
-                }
-            };
-            
-            // Se não for uma continuação, espera antes de começar
-            if (!isContinuation) {
-                 setTimeout(advance, intervalTime);
-            }
-            
-            autoScrollInterval = setInterval(advance, intervalTime);
+            clearTimeout(autoScrollTimer);
+            autoScrollTimer = null;
         }
         
-        // --- Listeners para o scroll manual (com interrupção do auto-scroll) ---
+        function scheduleNextAutoScroll() {
+            stopAutoScroll(); // Sempre cancela o timer anterior antes de agendar um novo
+            const intervalTime = 12000; // 12 segundos
+
+            autoScrollTimer = setTimeout(() => {
+                const currentIndex = getCurrentSectionIndex();
+                if (currentIndex < sections.length - 1) {
+                    scrollToSection(currentIndex + 1);
+                    scheduleNextAutoScroll(); // Agenda o próximo avanço
+                }
+            }, intervalTime);
+        }
+
+        // --- Listeners para o scroll manual (agora mais simples) ---
         let wheelTimeout;
         window.addEventListener('wheel', (e) => {
             e.preventDefault(); 
             if (isScrolling) return;
-            stopAutoScroll(); // Para o auto-scroll ao interagir
-
+            
             clearTimeout(wheelTimeout);
             wheelTimeout = setTimeout(() => {
                 const currentSectionIdx = getCurrentSectionIndex();
@@ -151,15 +131,13 @@ window.addEventListener('load', () => {
                 else if (e.deltaY < 0 && currentSectionIdx > 0) {
                     scrollToSection(currentSectionIdx - 1);
                 }
-                restartAutoScrollDelayed(); // Agenda o reinício do auto-scroll
+                scheduleNextAutoScroll(); // Cancela e reinicia o timer do auto-scroll
             }, 50);
         }, { passive: false });
 
         let touchStartY = 0;
         let touchTimeout;
         window.addEventListener('touchstart', (e) => {
-            if (isScrolling) return;
-            stopAutoScroll(); // Para o auto-scroll ao interagir
             touchStartY = e.changedTouches[0].screenY;
         }, { passive: true });
 
@@ -172,13 +150,15 @@ window.addEventListener('load', () => {
                 const deltaY = touchEndY - touchStartY;
                 const currentSectionIdx = getCurrentSectionIndex();
 
-                if (deltaY < -50 && currentSectionIdx < sections.length - 1) {
-                    scrollToSection(currentSectionIdx + 1);
+                if (Math.abs(deltaY) > 50) { // Apenas se for um swipe significativo
+                    if (deltaY < 0 && currentSectionIdx < sections.length - 1) {
+                        scrollToSection(currentSectionIdx + 1);
+                    }
+                    else if (deltaY > 0 && currentSectionIdx > 0) {
+                        scrollToSection(currentSectionIdx - 1);
+                    }
+                    scheduleNextAutoScroll(); // Cancela e reinicia o timer do auto-scroll
                 }
-                else if (deltaY > 50 && currentSectionIdx > 0) {
-                    scrollToSection(currentSectionIdx - 1);
-                }
-                restartAutoScrollDelayed(); // Agenda o reinício do auto-scroll
             }, 100);
         }, { passive: true });
 
@@ -186,24 +166,22 @@ window.addEventListener('load', () => {
         const startButton = document.getElementById('start-button');
         if (startButton) {
             startButton.addEventListener('click', () => {
-                stopAutoScroll();
                 scrollToSection(1);
-                restartAutoScrollDelayed();
+                scheduleNextAutoScroll();
             });
         }
 
         const restartButton = document.getElementById('restart-button');
         if (restartButton) {
             restartButton.addEventListener('click', () => {
-                stopAutoScroll();
                 scrollToSection(0);
-                restartAutoScrollDelayed();
+                scheduleNextAutoScroll();
             });
         }
 
         // --- Lógica do Contador ---
         function startCounter() {
-            const startDate = new Date('2023-02-14T00:00:00'); // IMPORTANTE: Coloque a data correta aqui
+            const startDate = new Date('2023-02-14T00:00:00'); 
             const daysEl = document.getElementById('days');
             const hoursEl = document.getElementById('hours');
             const minutesEl = document.getElementById('minutes');
@@ -239,38 +217,32 @@ window.addEventListener('load', () => {
             }
 
             const startCarouselAutoPlay = () => {
-                stopCarouselAutoPlay(); // Garante que não haja múltiplos intervalos rodando
+                clearInterval(carouselInterval);
                 carouselInterval = setInterval(() => {
                     let newIndex = currentSlide + 1;
-                    if (newIndex >= items.length) newIndex = 0; // Volta para o início
+                    if (newIndex >= items.length) newIndex = 0;
                     moveToSlide(newIndex);
-                }, 5000); // Muda a cada 5 segundos
-            };
-
-            const stopCarouselAutoPlay = () => {
-                clearInterval(carouselInterval);
+                }, 5000);
             };
             
             nextButton.addEventListener('click', () => {
                 let newIndex = currentSlide + 1;
                 if (newIndex >= items.length) newIndex = 0;
                 moveToSlide(newIndex);
-                startCarouselAutoPlay(); // Reinicia o timer ao clicar
+                startCarouselAutoPlay();
             });
 
             prevButton.addEventListener('click', () => {
                 let newIndex = currentSlide - 1;
                 if (newIndex < 0) newIndex = items.length - 1;
                 moveToSlide(newIndex);
-                startCarouselAutoPlay(); // Reinicia o timer ao clicar
+                startCarouselAutoPlay();
             });
             
-            // Inicia o auto-play do carrossel e da página
             startCarouselAutoPlay();
-            startAutoScroll();
-        } else {
-             // Se não houver carrossel, ainda inicia o auto-scroll da página
-            startAutoScroll();
         }
+        
+        // Inicia o auto-scroll da página pela primeira vez
+        scheduleNextAutoScroll();
     }
 })();
