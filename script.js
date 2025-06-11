@@ -1,305 +1,276 @@
-document.addEventListener('DOMContentLoaded', () => {
+// === CONTROLE DO PRELOADER E EXIBIÇÃO INICIAL ===
+window.addEventListener('load', () => {
     const preloader = document.getElementById('preloader');
-    const backgroundMusic = document.getElementById('background-music');
-    const musicToggleButton = document.getElementById('music-toggle');
-    const playIcon = document.getElementById('play-icon');
-    const pauseIcon = document.getElementById('pause-icon');
-    const startButton = document.getElementById('start-button');
-    const sections = document.querySelectorAll('.timeline-section');
-    const restartButton = document.getElementById('restart-button');
-
-    let isMusicPlaying = false;
-    let activeTypewriterIntervals = new Map(); // Mapa para armazenar intervalos por elemento
-    let counterInterval;
-    let carouselInterval;
-
-    // --- Preloader ---
-    window.addEventListener('load', () => {
-        backgroundMusic.volume = 0.5;
-        backgroundMusic.pause();
-
-        setTimeout(() => {
-            preloader.style.opacity = '0';
-            setTimeout(() => {
-                preloader.style.display = 'none';
-                document.querySelector('.timeline-container').style.opacity = '1';
-                checkSectionVisibility(); // Inicia a observação das seções
-            }, 1000);
-        }, 1000);
-    });
-
-    // --- Controle de Música ---
-    musicToggleButton.addEventListener('click', () => {
-        if (isMusicPlaying) {
-            backgroundMusic.pause();
-            playIcon.style.display = 'inline-block';
-            pauseIcon.style.display = 'none';
-        } else {
-            backgroundMusic.play().catch(e => console.error("Erro ao tocar música:", e));
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'inline-block';
-        }
-        isMusicPlaying = !isMusicPlaying;
-    });
-
-    // --- Navegação (Scroll e Animação de Entrada) ---
-
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.5
-    };
-
-    const sectionObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                if (!entry.target.classList.contains('active')) {
-                    entry.target.classList.add('active');
-                    // Aplica o efeito de digitação para o título e outros textos da seção
-                    initTypewriterEffect(entry.target); 
-                    
-                    if (entry.target.classList.contains('gallery-section')) {
-                        updateCarousel(true); // Ativa o carrossel e sua legenda
-                    }
-
-                    if (entry.target.classList.contains('counter-section')) {
-                        startRelationshipCounter();
-                    } else if (entry.target.classList.contains('gallery-section')) {
-                        startCarouselAutoSlide();
-                    }
-                }
-            } else {
-                if (entry.target.classList.contains('active')) {
-                    entry.target.classList.remove('active');
-                    clearTypewriterIntervalsForSection(entry.target); // Limpar intervalos e mostrar texto completo
-
-                    if (entry.target.classList.contains('counter-section')) {
-                        stopRelationshipCounter();
-                    } else if (entry.target.classList.contains('gallery-section')) {
-                        clearInterval(carouselInterval);
-                    }
-                }
-            }
-        });
-    }, observerOptions);
-
-    function checkSectionVisibility() {
-        sections.forEach(section => {
-            sectionObserver.observe(section);
+    const timelineContainer = document.querySelector('.timeline-container');
+    
+    if (preloader) {
+        preloader.style.opacity = '0';
+        preloader.addEventListener('transitionend', () => {
+            preloader.style.display = 'none';
         });
     }
 
-    startButton.addEventListener('click', () => {
-        if (!isMusicPlaying) {
-            backgroundMusic.play().catch(e => console.error("Erro ao tocar música:", e));
-            isMusicPlaying = true;
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'inline-block';
-        }
-        document.getElementById('section-1').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    if (restartButton) {
-        restartButton.addEventListener('click', () => {
-            document.getElementById('section-0').scrollIntoView({ behavior: 'smooth' });
-
-            if (isMusicPlaying) {
-                backgroundMusic.currentTime = 0;
-                backgroundMusic.play().catch(e => console.error("Erro ao retomar música de fundo:", e));
-            }
-
-            // Garante que todos os typewriters sejam resetados para iniciar do zero
-            sections.forEach(section => {
-                const elements = section.querySelectorAll('.typewriter-text');
-                elements.forEach(el => {
-                    if (activeTypewriterIntervals.has(el)) {
-                        clearInterval(activeTypewriterIntervals.get(el));
-                        activeTypewriterIntervals.delete(el);
-                    }
-                    el.textContent = ''; // Limpa o texto
-                    el.classList.remove('finished-typing');
-                    el.classList.remove('typing-cursor'); // Remove qualquer cursor remanescente
-                });
-            });
-        });
-    }
-
-    // --- Efeito de Digitação (Typewriter) ---
-
-    // Esta função agora aceita um 'targetElement' que pode ser um container (seção) ou um único elemento
-    function initTypewriterEffect(targetElement) {
-        let elementsToType;
-        if (targetElement.classList.contains('typewriter-text')) {
-            // Se o targetElement já é um typewriter-text, trate-o como o único elemento a digitar
-            elementsToType = [targetElement];
-        } else {
-            // Caso contrário, procure todos os typewriter-text dentro do container
-            elementsToType = targetElement.querySelectorAll('.typewriter-text');
-        }
-
-        let currentTypingElementIndex = 0;
-        const typingSpeed = 50;
-        const pauseAfterTyping = 500;
-
-        // Resetar todos os elementos de digitação antes de começar uma nova sequência
-        elementsToType.forEach(element => {
-            if (activeTypewriterIntervals.has(element)) {
-                clearInterval(activeTypewriterIntervals.get(element));
-                activeTypewriterIntervals.delete(element);
-            }
-            element.textContent = '';
-            element.classList.remove('finished-typing');
-            element.classList.remove('typing-cursor'); // Garante que nenhum cursor esteja ativo inicialmente
-        });
-        
-        function typeNextElement() {
-            // Primeiro, limpa todos os cursores *antes* de adicionar ao elemento atual
-            // Isso previne que cursores de elementos anteriores permaneçam na tela
-            document.querySelectorAll('.typewriter-text.typing-cursor').forEach(el => {
-                el.classList.remove('typing-cursor');
-            });
-
-            if (currentTypingElementIndex < elementsToType.length) {
-                const element = elementsToType[currentTypingElementIndex];
-                const originalText = element.dataset.text;
-                let charIndex = 0;
-
-                element.classList.add('typing-cursor'); // Adiciona o cursor APENAS ao elemento atual
-                element.classList.remove('finished-typing'); // Garante que a classe finished-typing seja removida
-
-                const interval = setInterval(() => {
-                    if (charIndex < originalText.length) {
-                        element.textContent += originalText.charAt(charIndex);
-                        charIndex++;
-                    } else {
-                        clearInterval(interval);
-                        element.classList.add('finished-typing');
-                        element.classList.remove('typing-cursor'); // Remove o cursor após terminar a digitação
-                        activeTypewriterIntervals.delete(element);
-                        
-                        currentTypingElementIndex++;
-                        setTimeout(typeNextElement, pauseAfterTyping);
-                    }
-                }, typingSpeed);
-
-                activeTypewriterIntervals.set(element, interval);
-            }
-        }
-        typeNextElement();
-    }
-
-    function clearTypewriterIntervalsForSection(sectionElement) {
-        const elementsInSection = sectionElement.querySelectorAll('.typewriter-text');
-        elementsInSection.forEach(element => {
-            if (activeTypewriterIntervals.has(element)) {
-                clearInterval(activeTypewriterIntervals.get(element));
-                activeTypewriterIntervals.delete(element);
-            }
-            // Garante que o texto completo seja exibido e o cursor removido
-            element.textContent = element.dataset.text;
-            element.classList.add('finished-typing');
-            element.classList.remove('typing-cursor'); // Remove o cursor ao sair da seção
-        });
-    }
-
-    // --- Carrossel de Imagens ---
-    const carouselTrack = document.querySelector('.carousel-track');
-    const carouselItems = document.querySelectorAll('.carousel-item');
-    const carouselPrevButton = document.querySelector('.carousel-button.prev');
-    const carouselNextButton = document.querySelector('.carousel-button.next');
-    let carouselIndex = 0;
-    const totalCarouselItems = carouselItems.length;
-
-    function updateCarousel() {
-        if (carouselTrack) {
-            carouselTrack.style.transform = `translateX(-${carouselIndex * 100}%)`;
-
-            // Resetar todos os cursores e textos de legendas antes de ativar a atual
-            carouselItems.forEach(item => {
-                const legendElement = item.querySelector('p.typewriter-text');
-                if (legendElement) {
-                    if (activeTypewriterIntervals.has(legendElement)) {
-                        clearInterval(activeTypewriterIntervals.get(legendElement));
-                        activeTypewriterIntervals.delete(legendElement);
-                    }
-                    legendElement.textContent = legendElement.dataset.text; // Mostra texto completo
-                    legendElement.classList.add('finished-typing');
-                    legendElement.classList.remove('typing-cursor'); // Garante que o cursor seja removido
-                }
-            });
-
-            // Ativa o typewriter apenas na legenda do item visível
-            const currentItem = carouselItems[carouselIndex];
-            const currentLegend = currentItem.querySelector('p.typewriter-text');
-            if (currentLegend) {
-                // Chame initTypewriterEffect diretamente no elemento da legenda
-                // O initTypewriterEffect já foi ajustado para lidar com um único elemento
-                initTypewriterEffect(currentLegend);
-            }
-        }
-    }
-
-    function startCarouselAutoSlide() {
-        if (carouselInterval) clearInterval(carouselInterval);
-        carouselInterval = setInterval(() => {
-            carouselIndex = (carouselIndex + 1) % totalCarouselItems;
-            updateCarousel();
-        }, 5000);
-        updateCarousel(); // Chamada inicial para a primeira legenda
-    }
-
-    if (carouselNextButton) {
-        carouselNextButton.addEventListener('click', () => {
-            clearInterval(carouselInterval);
-            carouselIndex = (carouselIndex + 1) % totalCarouselItems;
-            updateCarousel();
-            startCarouselAutoSlide();
-        });
-    }
-
-    if (carouselPrevButton) {
-        carouselPrevButton.addEventListener('click', () => {
-            clearInterval(carouselInterval);
-            carouselIndex = (carouselIndex - 1 + totalCarouselItems) % totalCarouselItems;
-            updateCarousel();
-            startCarouselAutoSlide();
-        });
-    }
-
-    // --- Contador de Relacionamento ---
-    const startDate = new Date('2025-06-10T18:47:48'); // **AJUSTE ESTA DATA PARA A SUA DATA REAL!**
-
-    function calculateTime() {
-        const now = new Date();
-        const diff = now - startDate;
-
-        if (diff < 0) {
-            document.getElementById('days').textContent = '00';
-            document.getElementById('hours').textContent = '00';
-            document.getElementById('minutes').textContent = '00';
-            return;
-        }
-
-        const minutes = Math.floor(diff / (1000 * 60)) % 60;
-        const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-        document.getElementById('days').textContent = String(days).padStart(2, '0');
-        document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-        document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-    }
-
-    function startRelationshipCounter() {
-        if (!counterInterval) {
-            calculateTime();
-            counterInterval = setInterval(calculateTime, 1000);
-        }
-    }
-
-    function stopRelationshipCounter() {
-        if (counterInterval) {
-            clearInterval(counterInterval);
-            counterInterval = null;
-        }
+    if (timelineContainer) {
+        timelineContainer.style.opacity = '1';
     }
 });
+
+
+// === LÓGICA PRINCIPAL DA PÁGINA (SCROLL, ANIMAÇÕES, ETC.) ===
+(() => {
+    // Espera o documento carregar para iniciar tudo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const sections = Array.from(document.querySelectorAll('section'));
+        if (sections.length === 0) return;
+
+        // --- FUNÇÃO DA MÁQUINA DE ESCREVER ---
+        function typeWriter(element, speed = 80) { // Velocidade da digitação ajustada
+            const textToType = element.getAttribute('data-text');
+            if (!textToType || element.hasAttribute('data-typed')) return;
+            element.setAttribute('data-typed', 'true');
+            element.classList.add('typing-cursor');
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < textToType.length) {
+                    element.innerHTML += textToType.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.classList.remove('typing-cursor');
+                    element.classList.add('finished-typing');
+                }
+            }
+            type();
+        }
+
+        // --- OBSERVADOR PARA ATIVAR ANIMAÇÕES QUANDO VISÍVEIS ---
+        const animationObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const section = entry.target;
+                    section.classList.add('active');
+                    const typewriterElements = section.querySelectorAll('.typewriter-text');
+                    typewriterElements.forEach((el, index) => {
+                        setTimeout(() => {
+                            typeWriter(el);
+                        }, 300 * (index + 1));
+                    });
+                    observer.unobserve(section);
+                }
+            });
+        }, { threshold: 0.4 });
+
+        sections.forEach(section => {
+            animationObserver.observe(section);
+        });
+
+        // ========================================================================
+        // === LÓGICA DE SCROLL POR SEÇÃO E AUTO-SCROLL ===
+        // ========================================================================
+        let isScrolling = false;
+        let autoScrollInterval = null; // Para o controle do auto-scroll
+
+        // Função para detectar qual é a seção atual na tela
+        function getCurrentSectionIndex() {
+            let closestIndex = 0;
+            sections.forEach((section, index) => {
+                const { top } = section.getBoundingClientRect();
+                if (Math.abs(top) < Math.abs(sections[closestIndex].getBoundingClientRect().top)) {
+                    closestIndex = index;
+                }
+            });
+            return closestIndex;
+        }
+        
+        // Função que rola suavemente para a seção desejada
+        function scrollToSection(index) {
+            if (isScrolling || index < 0 || index >= sections.length) return;
+            isScrolling = true;
+            sections[index].scrollIntoView({ behavior: 'smooth' });
+            
+            // CORREÇÃO 1: Reduzido o tempo de cooldown para 800ms
+            setTimeout(() => {
+                isScrolling = false;
+            }, 700); 
+        }
+
+        // --- LÓGICA DE AUTO-SCROLL (RESTAURADA) ---
+        function stopAutoScroll() {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+
+        function restartAutoScrollDelayed() {
+            stopAutoScroll();
+            autoScrollInterval = setTimeout(() => {
+                startAutoScroll(true); // O 'true' indica que é uma continuação
+            }, 10000); // Reinicia após 10 segundos de inatividade
+        }
+
+        function startAutoScroll(isContinuation = false) {
+            stopAutoScroll();
+            const intervalTime = 9000; // Tempo entre cada avanço automático
+
+            const advance = () => {
+                let currentIndex = getCurrentSectionIndex();
+                if (currentIndex < sections.length - 1) {
+                    scrollToSection(currentIndex + 1);
+                } else {
+                    stopAutoScroll(); // Para no final
+                }
+            };
+            
+            // Se não for uma continuação, espera antes de começar
+            if (!isContinuation) {
+                 setTimeout(advance, intervalTime);
+            }
+            
+            autoScrollInterval = setInterval(advance, intervalTime);
+        }
+        
+        // --- Listeners para o scroll manual (com interrupção do auto-scroll) ---
+        let wheelTimeout;
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault(); 
+            if (isScrolling) return;
+            stopAutoScroll(); // Para o auto-scroll ao interagir
+
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                const currentSectionIdx = getCurrentSectionIndex();
+                if (e.deltaY > 0 && currentSectionIdx < sections.length - 1) {
+                    scrollToSection(currentSectionIdx + 1);
+                } 
+                else if (e.deltaY < 0 && currentSectionIdx > 0) {
+                    scrollToSection(currentSectionIdx - 1);
+                }
+                restartAutoScrollDelayed(); // Agenda o reinício do auto-scroll
+            }, 50);
+        }, { passive: false });
+
+        let touchStartY = 0;
+        let touchTimeout;
+        window.addEventListener('touchstart', (e) => {
+            if (isScrolling) return;
+            stopAutoScroll(); // Para o auto-scroll ao interagir
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if (isScrolling) return;
+            
+            clearTimeout(touchTimeout);
+            touchTimeout = setTimeout(() => {
+                const touchEndY = e.changedTouches[0].screenY;
+                const deltaY = touchEndY - touchStartY;
+                const currentSectionIdx = getCurrentSectionIndex();
+
+                if (deltaY < -50 && currentSectionIdx < sections.length - 1) {
+                    scrollToSection(currentSectionIdx + 1);
+                }
+                else if (deltaY > 50 && currentSectionIdx > 0) {
+                    scrollToSection(currentSectionIdx - 1);
+                }
+                restartAutoScrollDelayed(); // Agenda o reinício do auto-scroll
+            }, 100);
+        }, { passive: true });
+
+        // --- Lógica dos Botões ---
+        const startButton = document.getElementById('start-button');
+        if (startButton) {
+            startButton.addEventListener('click', () => {
+                stopAutoScroll();
+                scrollToSection(1);
+                restartAutoScrollDelayed();
+            });
+        }
+
+        const restartButton = document.getElementById('restart-button');
+        if (restartButton) {
+            restartButton.addEventListener('click', () => {
+                stopAutoScroll();
+                scrollToSection(0);
+                restartAutoScrollDelayed();
+            });
+        }
+
+        // --- Lógica do Contador ---
+        function startCounter() {
+            const startDate = new Date('2023-02-14T00:00:00'); // IMPORTANTE: Coloque a data correta aqui
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            if (!daysEl) return;
+            function updateCounter() {
+                const now = new Date();
+                const diff = now - startDate;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                daysEl.textContent = String(days).padStart(2, '0');
+                hoursEl.textContent = String(hours).padStart(2, '0');
+                minutesEl.textContent = String(minutes).padStart(2, '0');
+            }
+            setInterval(updateCounter, 1000);
+            updateCounter();
+        }
+        startCounter();
+
+        // --- Lógica do Carrossel (COM AUTO-PLAY) ---
+        const carouselTrack = document.querySelector('.carousel-track');
+        if (carouselTrack) {
+            const items = Array.from(carouselTrack.children);
+            const nextButton = document.querySelector('.carousel-button.next');
+            const prevButton = document.querySelector('.carousel-button.prev');
+            let currentSlide = 0;
+            let carouselInterval = null;
+
+            const moveToSlide = (targetIndex) => {
+                if(!carouselTrack) return;
+                carouselTrack.style.transform = 'translateX(-' + 100 * targetIndex + '%)';
+                currentSlide = targetIndex;
+            }
+
+            const startCarouselAutoPlay = () => {
+                stopCarouselAutoPlay(); // Garante que não haja múltiplos intervalos rodando
+                carouselInterval = setInterval(() => {
+                    let newIndex = currentSlide + 1;
+                    if (newIndex >= items.length) newIndex = 0; // Volta para o início
+                    moveToSlide(newIndex);
+                }, 5000); // Muda a cada 5 segundos
+            };
+
+            const stopCarouselAutoPlay = () => {
+                clearInterval(carouselInterval);
+            };
+            
+            nextButton.addEventListener('click', () => {
+                let newIndex = currentSlide + 1;
+                if (newIndex >= items.length) newIndex = 0;
+                moveToSlide(newIndex);
+                startCarouselAutoPlay(); // Reinicia o timer ao clicar
+            });
+
+            prevButton.addEventListener('click', () => {
+                let newIndex = currentSlide - 1;
+                if (newIndex < 0) newIndex = items.length - 1;
+                moveToSlide(newIndex);
+                startCarouselAutoPlay(); // Reinicia o timer ao clicar
+            });
+            
+            // Inicia o auto-play do carrossel e da página
+            startCarouselAutoPlay();
+            startAutoScroll();
+        } else {
+             // Se não houver carrossel, ainda inicia o auto-scroll da página
+            startAutoScroll();
+        }
+    }
+})();
